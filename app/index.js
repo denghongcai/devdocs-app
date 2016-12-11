@@ -5,6 +5,7 @@ const electron = require('electron')
 const app = electron.app
 const Menu = electron.Menu
 const BrowserWindow = electron.BrowserWindow
+const globalShortcut = electron.globalShortcut
 const appMenu = require('./menu')
 
 // const isDev = process.env.NODE_ENV === 'development'
@@ -27,6 +28,7 @@ function createWindow() {
   const page = mainWindow.webContents
 
   page.on('dom-ready', () => {
+    page.executeJavaScript(`require('electron').webFrame.setZoomLevelLimits(1, 1)`)
     page.insertCSS(fs.readFileSync(path.join(__dirname, 'browser.css'), 'utf8'))
   })
 
@@ -39,6 +41,17 @@ function createWindow() {
 app.on('ready', () => {
   Menu.setApplicationMenu(appMenu)
   createWindow()
+  globalShortcut.register('CommandOrControl+Alt+F', () => {
+    if (mainWindow.isVisible()) {
+      mainWindow.hide()
+    } else {
+      mainWindow.show()
+    }
+  })
+})
+
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll()
 })
 
 app.on('window-all-closed', () => {
